@@ -4,6 +4,13 @@ Cutter is a Ruby library that implements the circuit breaker design pattern, so 
 
 With the Cutter library, your Ruby application will remain stable even if a connected third-party application experiences problems. This library implements the circuit breaker design pattern; in other words, it protects your application from system failures caused by external factors.
 
+## High Flow
+potential problems when 3rdparty applications experience problems : 
+![Logo Ruby](https://github.com/solehudinmq/cutter/blob/development/high_flow/cutter-problem.jpg)
+
+circuit breaker solution to prevent system failure due to problematic 3rdparty applications :
+![Logo Ruby](https://github.com/solehudinmq/cutter/blob/development/high_flow/cutter-solution.jpg)
+
 ## Installation
 
 ### localhost
