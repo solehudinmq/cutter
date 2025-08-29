@@ -1,28 +1,62 @@
 # Cutter
 
-TODO: Delete this and the text below, and describe your gem
+Cutter is a Ruby library that implements the circuit breaker design pattern, so your application will be more stable even if your 3rd party application is having problems.
 
-Welcome to your new gem! In this directory, you'll find the files you need to be able to package up your Ruby library into a gem. Put your Ruby code in the file `lib/cutter`. To experiment with that code, run `bin/console` for an interactive prompt.
+With the Cutter library, your Ruby application will remain stable even if a connected third-party application experiences problems. This library implements the circuit breaker design pattern; in other words, it protects your application from system failures caused by external factors.
 
 ## Installation
 
-TODO: Replace `UPDATE_WITH_YOUR_GEM_NAME_IMMEDIATELY_AFTER_RELEASE_TO_RUBYGEMS_ORG` with your gem name right after releasing it to RubyGems.org. Please do not do it earlier due to security reasons. Alternatively, replace this section with instructions to install your gem from git if you don't plan to release to RubyGems.org.
+### localhost
 
-Install the gem and add to the application's Gemfile by executing:
+The minimum version of Ruby that must be installed is 3.0.
 
-```bash
-bundle add UPDATE_WITH_YOUR_GEM_NAME_IMMEDIATELY_AFTER_RELEASE_TO_RUBYGEMS_ORG
+Add this line to your application's Gemfile :
+
+```ruby
+gem 'cutter'
 ```
 
-If bundler is not being used to manage dependencies, install the gem by executing:
+Or you can do this : 
 
-```bash
-gem install UPDATE_WITH_YOUR_GEM_NAME_IMMEDIATELY_AFTER_RELEASE_TO_RUBYGEMS_ORG
+```ruby
+gem 'cutter', git: 'git@github.com:solehudinmq/cutter.git', branch: 'main'
 ```
 
 ## Usage
 
-TODO: Write usage instructions here
+In your ruby ​​code, add this:
+```ruby
+require 'cutter'
+```
+
+Open terminal, and run this : 
+```bash
+cd your_ruby_application
+bundle install
+```
+
+Add this to initial library : 
+```ruby
+cb = Cutter::CircuitBreaker.new(maximum_failure_limit: 3, waiting_time: 5)
+```
+description of parameters:
+- maximum_failure_limit = is the maximum failure limit when the state is closed. If the failure exceeds the maximum_failure_limit then the state will change to open. Example : 3 (meaning 3 times failed).
+- waiting_time = is the waiting time when the state is open, if it exceeds this waiting time then the state will change to half open. Example : 5 (This means the waiting time from state open to half open is 5 seconds).
+
+How to call 3rdparty API : 
+```ruby
+5.times do |i|
+    puts "==> Try to-#{i + 1}"
+    begin
+        response = cb.run { ThirdPartyAPI.call }
+        # your logic here
+    rescue => e
+        # your error response here
+    end
+    puts "\n"
+    sleep(1) # Wait 1 second between attempts.
+end
+```
 
 ## Development
 
@@ -32,7 +66,7 @@ To install this gem onto your local machine, run `bundle exec rake install`. To 
 
 ## Contributing
 
-Bug reports and pull requests are welcome on GitHub at https://github.com/[USERNAME]/cutter.
+Bug reports and pull requests are welcome on GitHub at https://github.com/solehudinmq/cutter.
 
 ## License
 
