@@ -13,8 +13,6 @@ circuit breaker solution to prevent system failure due to problematic 3rdparty a
 
 ## Installation
 
-### localhost
-
 The minimum version of Ruby that must be installed is 3.0.
 
 Add this line to your application's Gemfile :
