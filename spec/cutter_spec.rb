@@ -26,6 +26,7 @@ RSpec.describe Cutter::CircuitBreaker do
 
     expect(cb.state).to be :closed
 
+    # response call api 1 -> success
     1.times do |i|
       begin
         response = cb.run { success_simulation }
@@ -43,6 +44,9 @@ RSpec.describe Cutter::CircuitBreaker do
 
     expect(cb.state).to be :closed
 
+    # response call api 1 -> success
+    # response call api 2 -> timeout
+    # response call api 3 -> success
     3.times do |i|
       begin
         response = cb.run { success_simulation_with_timeout(i) }
@@ -60,6 +64,10 @@ RSpec.describe Cutter::CircuitBreaker do
 
     expect(cb.state).to be :closed
 
+    # response call api 1 -> timeout
+    # response call api 2 -> timeout
+    # response call api 3 -> timeout
+    # response call api 4 -> timeout
     4.times do |i|
       begin
         response = cb.run { timeout_simulation }
@@ -73,14 +81,30 @@ RSpec.describe Cutter::CircuitBreaker do
     expect(cb.state).to be :open
   end
 
-  it "state open changes to closed" do
+  it "state half open changes to closed" do
     cb = Cutter::CircuitBreaker.new(maximum_failure_limit: 3, waiting_time: 3)
 
     expect(cb.state).to be :closed
 
-    4.times do |i|
+    # response call api 1 -> timeout
+    # response call api 2 -> timeout
+    # response call api 3 -> timeout
+    # response call api 4 -> timeout
+    # response call api 5 -> success
+    5.times do |i|
+      if i == 4
+        sleep 4 # waiting time to change state from open to half open
+      end
+
       begin
-        response = cb.run { timeout_simulation }
+        response = cb.run do 
+          if i == 4
+            success_simulation
+          else
+            timeout_simulation
+          end
+        end
+
         puts "Success: #{response}"
       rescue => e
         puts "Error: #{e.message}"
@@ -88,19 +112,6 @@ RSpec.describe Cutter::CircuitBreaker do
       end
     end
     
-    expect(cb.state).to be :open
-
-    sleep 4 # update state to half open
-    
-    1.times do |i|
-      begin
-        response = cb.run { success_simulation }
-        puts "Success: #{response}"
-      rescue => e
-        puts "Error: #{e.message}"
-      end
-    end
-
     expect(cb.state).to be :closed
   end
 
@@ -109,9 +120,19 @@ RSpec.describe Cutter::CircuitBreaker do
 
     expect(cb.state).to be :closed
 
-    4.times do |i|
+    # response call api 1 -> timeout
+    # response call api 2 -> timeout
+    # response call api 3 -> timeout
+    # response call api 4 -> timeout
+    # response call api 5 -> timeout
+    5.times do |i|
+      if i == 4
+        sleep 4 # waiting time to change state from open to half open
+      end
+
       begin
         response = cb.run { timeout_simulation }
+        
         puts "Success: #{response}"
       rescue => e
         puts "Error: #{e.message}"
@@ -119,19 +140,6 @@ RSpec.describe Cutter::CircuitBreaker do
       end
     end
     
-    expect(cb.state).to be :open
-
-    sleep 4 # update state to half open
-    
-    1.times do |i|
-      begin
-        response = cb.run { timeout_simulation }
-        puts "Success: #{response}"
-      rescue => e
-        puts "Error: #{e.message}"
-      end
-    end
-
     expect(cb.state).to be :open
   end
 end
