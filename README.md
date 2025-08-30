@@ -18,13 +18,13 @@ The minimum version of Ruby that must be installed is 3.0.
 Add this line to your application's Gemfile :
 
 ```ruby
-gem 'cutter'
+gem 'cutter', git: 'git@github.com:solehudinmq/cutter.git', branch: 'main'
 ```
 
-Or you can do this : 
-
-```ruby
-gem 'cutter', git: 'git@github.com:solehudinmq/cutter.git', branch: 'main'
+Open terminal, and run this : 
+```bash
+cd your_ruby_application
+bundle install
 ```
 
 ## Usage
@@ -32,12 +32,6 @@ gem 'cutter', git: 'git@github.com:solehudinmq/cutter.git', branch: 'main'
 In your ruby ​​code, add this:
 ```ruby
 require 'cutter'
-```
-
-Open terminal, and run this : 
-```bash
-cd your_ruby_application
-bundle install
 ```
 
 Add this to initial library : 
@@ -53,7 +47,9 @@ How to call 3rdparty API :
 5.times do |i|
     puts "==> Try to-#{i + 1}"
     begin
-        response = cb.run { ThirdPartyAPI.call }
+        response = cb.run do
+            # call api third party here
+        end
         # your logic here
     rescue => e
         # your error response here
