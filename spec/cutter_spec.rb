@@ -1,17 +1,11 @@
 # frozen_string_literal: true
 
-require 'byebug'
-
 RSpec.describe Cutter::CircuitBreaker do
   it "has a version number" do
     expect(Cutter::VERSION).not_to be nil
   end
 
-  before(:all) do
-    @cb = Cutter::CircuitBreaker.new(maximum_failure_limit: 3, waiting_time: 5)
-  end
-
-  def closed_state_simulation(index)
+  def success_simulation_with_timeout(index)
     if index == 1
       raise("Timeout!")
     end
@@ -19,63 +13,125 @@ RSpec.describe Cutter::CircuitBreaker do
     "Data received successfully!"
   end
 
-  def open_state_simulation
-    raise("Timeout!")
-  end
-
-  def half_open_simulation
+  def success_simulation
     "Data received successfully!"
   end
 
+  def timeout_simulation
+    raise("Timeout!")
+  end
+
   it "state does not change" do
-    3.times do |i|
+    cb = Cutter::CircuitBreaker.new(maximum_failure_limit: 3, waiting_time: 3)
+
+    expect(cb.state).to be :closed
+
+    1.times do |i|
       begin
-        response = @cb.run { closed_state_simulation(i) }
+        response = cb.run { success_simulation }
         puts "Success: #{response}"
       rescue => e
         puts "Error: #{e.message}"
       end
     end
     
-    expect(@cb.state).to be :closed
+    expect(cb.state).to be :closed
+  end
+
+  it "state does not change because total_failure is 1" do
+    cb = Cutter::CircuitBreaker.new(maximum_failure_limit: 3, waiting_time: 3)
+
+    expect(cb.state).to be :closed
+
+    3.times do |i|
+      begin
+        response = cb.run { success_simulation_with_timeout(i) }
+        puts "Success: #{response}"
+      rescue => e
+        puts "Error: #{e.message}"
+      end
+    end
+    
+    expect(cb.state).to be :closed
   end
 
   it "state closed changes to open" do
+    cb = Cutter::CircuitBreaker.new(maximum_failure_limit: 3, waiting_time: 3)
+
+    expect(cb.state).to be :closed
+
     4.times do |i|
       begin
-        response = @cb.run { open_state_simulation }
+        response = cb.run { timeout_simulation }
         puts "Success: #{response}"
       rescue => e
         puts "Error: #{e.message}"
+        expect(e.message).to be 'Circuit breaker is open, request is rejected.' if i == 3
       end
     end
     
-    expect(@cb.state).to be :open
-  end
-
-  it "request rejected because state is open" do
-    1.times do |i|
-      begin
-        response = @cb.run { closed_state_simulation(i) }
-        puts "Success: #{response}"
-      rescue => e
-        puts "Error: #{e.message}"
-        expect(e.message).to be "Circuit breaker is open, request is rejected."
-      end
-    end
+    expect(cb.state).to be :open
   end
 
   it "state open changes to closed" do
-    sleep 6
+    cb = Cutter::CircuitBreaker.new(maximum_failure_limit: 3, waiting_time: 3)
+
+    expect(cb.state).to be :closed
+
+    4.times do |i|
+      begin
+        response = cb.run { timeout_simulation }
+        puts "Success: #{response}"
+      rescue => e
+        puts "Error: #{e.message}"
+        expect(e.message).to be 'Circuit breaker is open, request is rejected.' if i == 3
+      end
+    end
+    
+    expect(cb.state).to be :open
+
+    sleep 4 # update state to half open
+    
     1.times do |i|
       begin
-        response = @cb.run { half_open_simulation }
+        response = cb.run { success_simulation }
         puts "Success: #{response}"
       rescue => e
         puts "Error: #{e.message}"
       end
     end
+
+    expect(cb.state).to be :closed
+  end
+
+  it "state half open changes to open" do
+    cb = Cutter::CircuitBreaker.new(maximum_failure_limit: 3, waiting_time: 3)
+
+    expect(cb.state).to be :closed
+
+    4.times do |i|
+      begin
+        response = cb.run { timeout_simulation }
+        puts "Success: #{response}"
+      rescue => e
+        puts "Error: #{e.message}"
+        expect(e.message).to be 'Circuit breaker is open, request is rejected.' if i == 3
+      end
+    end
     
-    expect(@cb.state).to be :closed
+    expect(cb.state).to be :open
+
+    sleep 4 # update state to half open
+    
+    1.times do |i|
+      begin
+        response = cb.run { timeout_simulation }
+        puts "Success: #{response}"
+      rescue => e
+        puts "Error: #{e.message}"
+      end
+    end
+
+    expect(cb.state).to be :open
   end
 end
