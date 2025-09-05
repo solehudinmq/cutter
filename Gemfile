@@ -6,10 +6,13 @@ source "https://rubygems.org"
 gemspec
 
 group :development, :test do
+    gem "byebug"
+end
+
+group :development do
     gem "irb"
     gem "rake", "~> 13.0"
     gem "rubocop", "~> 1.21"
-    gem "byebug"
 end
 
 group :test do
