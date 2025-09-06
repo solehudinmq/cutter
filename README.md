@@ -44,8 +44,6 @@ description of parameters:
 
 How to call 3rdparty API : 
 ```ruby
-5.times do |i|
-    puts "==> Try to-#{i + 1}"
     begin
         response = cb.run do
             # call api third party here
@@ -54,9 +52,6 @@ How to call 3rdparty API :
     rescue => e
         # your error response here
     end
-    puts "\n"
-    sleep(1) # Wait 1 second between attempts.
-end
 ```
 
 ## Development
