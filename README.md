@@ -49,7 +49,7 @@ How to call 3rdparty API :
             @cb = Cutter::CircuitBreaker.new(maximum_failure_limit: maximum_failure_limit, waiting_time: waiting_time)
         end
 
-        def call
+        def call(url, http_method, header, body)
             begin
                 response = @cb.run do
                     # call api third party here
