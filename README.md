@@ -44,13 +44,21 @@ description of parameters:
 
 How to call 3rdparty API : 
 ```ruby
-    begin
-        response = cb.run do
-            # call api third party here
+    class ThirdPartyService
+        def initialize(maximum_failure_limit, waiting_time)
+            @cb = Cutter::CircuitBreaker.new(maximum_failure_limit: maximum_failure_limit, waiting_time: waiting_time)
         end
-        # your logic here
-    rescue => e
-        # your error response here
+
+        def call
+            begin
+                response = @cb.run do
+                    # call api third party here
+                end
+                # your logic here
+            rescue => e
+                # your error response here
+            end
+        end
     end
 ```
 
