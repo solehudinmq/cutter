@@ -32,18 +32,22 @@ bundle install
 In your ruby ​​code, add this:
 ```ruby
 require 'cutter'
+
+cb = Cutter::CircuitBreaker.new(maximum_failure_limit: 3, waiting_time: 5)
+
+response = cb.run do
+    # call api third party here
+end
 ```
 
-Add this to initial library : 
-```ruby
-cb = Cutter::CircuitBreaker.new(maximum_failure_limit: 3, waiting_time: 5)
-```
 description of parameters:
 - maximum_failure_limit = is the maximum failure limit when the state is closed. If the failure exceeds the maximum_failure_limit then the state will change to open. Example : 3 (meaning 3 times failed).
 - waiting_time = is the waiting time when the state is open, if it exceeds this waiting time then the state will change to half open. Example : 5 (This means the waiting time from state open to half open is 5 seconds).
 
 How to call 3rdparty API : 
 ```ruby
+    require 'cutter'
+
     class ThirdPartyService
         def initialize(maximum_failure_limit, waiting_time)
             @cb = Cutter::CircuitBreaker.new(maximum_failure_limit: maximum_failure_limit, waiting_time: waiting_time)
