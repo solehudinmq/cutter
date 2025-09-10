@@ -69,10 +69,12 @@ How to call 3rdparty API :
     # 5 seconds is the wait time when the state is open, so that the state becomes half_open so that it can attempt to call the third-party API. If the third-party API is working properly, the state will change to closed; otherwise, the state will change to open.
     begin
         thirdparty_request = ThirdPartyService.new(3, 5)
-        thirdparty_request.call('http://localhost:4567/sync', 'POST', { 'Content-Type'=> 'application/json' }, {
+        response = thirdparty_request.call('http://localhost:4567/sync', 'POST', { 'Content-Type'=> 'application/json' }, {
             "user_id": 1,
             "total_amount": 50000
         })
+
+        # logic to handle responses from 3rdparty api.
     rescue => e
         # error message from 3rdparty api is still problematic.
     end
