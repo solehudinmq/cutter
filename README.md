@@ -93,9 +93,7 @@ How to call 3rdparty API :
         ]
 
         request_bodies.each do |body|
-            response = thirdparty_request.call('http://localhost:4567/sync', { 'Content-Type'=> 'application/json' }, body)
-
-            # logic to handle responses from 3rdparty api.
+            thirdparty_request.call('http://localhost:4567/sync', { 'Content-Type'=> 'application/json' }, body)
         end
     rescue => e
         # error message from 3rdparty api is still problematic.
