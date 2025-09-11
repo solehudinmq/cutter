@@ -47,16 +47,23 @@ description of parameters:
 How to call 3rdparty API : 
 ```ruby
     require 'cutter'
+    require 'httparty'
 
     class ThirdPartyService
         def initialize(maximum_failure_limit, waiting_time)
             @cb = Cutter::CircuitBreaker.new(maximum_failure_limit: maximum_failure_limit, waiting_time: waiting_time)
         end
 
-        def call(url, http_method, header, body)
+        def call(url, header, body)
             begin
                 response = @cb.run do
                     # call api third party here
+                    
+                    # POST request
+                    HTTParty.post(url,
+                        body: body.to_json,
+                        headers: header
+                    )
                 end
                 # your logic here
             rescue => e
@@ -86,7 +93,7 @@ How to call 3rdparty API :
         ]
 
         request_bodies.each do |body|
-            response = thirdparty_request.call('http://localhost:4567/sync', 'POST', { 'Content-Type'=> 'application/json' }, body)
+            response = thirdparty_request.call('http://localhost:4567/sync', { 'Content-Type'=> 'application/json' }, body)
 
             # logic to handle responses from 3rdparty api.
         end
