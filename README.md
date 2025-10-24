@@ -40,7 +40,7 @@ response = cb.run do
     HTTParty.post(url, 
       body: body,
       headers: headers,
-      timeout: 3
+      timeout: timeout
     )
 end
 ```
