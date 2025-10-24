@@ -13,7 +13,7 @@ circuit breaker solution to prevent system failure due to problematic 3rdparty a
 
 ## Installation
 
-The minimum version of Ruby that must be installed is 3.0.
+The minimum version of Ruby that must be installed is 3.0. Only supports using the 'httpparty' gem to call the API.
 
 Add this line to your application's Gemfile :
 
@@ -36,7 +36,12 @@ require 'cutter'
 cb = Cutter::CircuitBreaker.new(maximum_failure_limit: 3, waiting_time: 5)
 
 response = cb.run do
-    # call api third party here
+    # call api third party here (must use httparty gem)
+    HTTParty.post(url, 
+      body: body,
+      headers: headers,
+      timeout: 3
+    )
 end
 ```
 
@@ -44,67 +49,176 @@ description of parameters:
 - maximum_failure_limit = is the maximum failure limit when the state is closed. If the failure exceeds the maximum_failure_limit then the state will change to open. Example : 3 (meaning 3 times failed).
 - waiting_time = is the waiting time when the state is open, if it exceeds this waiting time then the state will change to half open. Example : 5 (This means the waiting time from state open to half open is 5 seconds).
 
-How to call 3rdparty API : 
+The following is an example of use in your application : 
 ```ruby
-    require 'cutter'
-    require 'httparty'
+# Gemfile
+# frozen_string_literal: true
 
-    class ThirdPartyService
-        def initialize(maximum_failure_limit, waiting_time)
-            @cb = Cutter::CircuitBreaker.new(maximum_failure_limit: maximum_failure_limit, waiting_time: waiting_time)
-        end
+source "https://rubygems.org"
 
-        def call(url, header, body)
-            begin
-                response = @cb.run do
-                    # call api third party here
-                    
-                    # POST request
-                    HTTParty.post(url,
-                        body: body.to_json,
-                        headers: header
-                    )
-                end
-                # your logic here
-            rescue => e
-                # your error response here
-            end
-        end
-    end
-
-    # 3 times maximum failure will close traffic to make calls to 3rdparty API.
-    # 5 seconds is the wait time when the state is open, so that the state becomes half_open so that it can attempt to call the third-party API. If the third-party API is working properly, the state will change to closed; otherwise, the state will change to open.
-    begin
-        thirdparty_request = ThirdPartyService.new(3, 5)
-
-        request_bodies = [
-            {
-                "user_id": 1,
-                "total_amount": 50000
-            },
-            {
-                "user_id": 2,
-                "total_amount": 40000
-            },
-            {
-                "user_id": 3,
-                "total_amount": 10000
-            }
-        ]
-
-        request_bodies.each do |body|
-            thirdparty_request.call('http://localhost:4567/sync', { 'Content-Type'=> 'application/json' }, body)
-        end
-    rescue => e
-        # error message from 3rdparty api is still problematic.
-    end
+gem "cutter", git: "git@github.com:solehudinmq/cutter.git", branch: "main"
+gem "byebug"
+gem "sinatra"
+gem "activerecord"
+gem "sqlite3"
+gem "httparty"
+gem "rackup", "~> 2.2"
+gem "puma", "~> 7.1"
 ```
 
-## Development
+```ruby
+# post.rb
 
-After checking out the repo, run `bin/setup` to install dependencies. Then, run `rake spec` to run the tests. You can also run `bin/console` for an interactive prompt that will allow you to experiment.
+require 'sinatra'
+require 'active_record'
+require 'byebug'
 
-To install this gem onto your local machine, run `bundle exec rake install`. To release a new version, update the version number in `version.rb`, and then run `bundle exec rake release`, which will create a git tag for the version, push git commits and the created tag, and push the `.gem` file to [rubygems.org](https://rubygems.org).
+# Configure database connections
+ActiveRecord::Base.establish_connection(
+  adapter: 'sqlite3',
+  database: 'db/development.sqlite3'
+)
+
+# Create a db directory if it doesn't exist yet
+Dir.mkdir('db') unless File.directory?('db')
+
+# Model
+class Post < ActiveRecord::Base
+end
+
+# Migration to create posts table
+ActiveRecord::Schema.define do
+  unless ActiveRecord::Base.connection.table_exists?(:posts)
+    create_table :posts do |t|
+      t.string :title
+      t.string :content
+      t.timestamps
+    end
+  end
+end
+```
+
+```ruby
+# app.rb
+
+require 'sinatra'
+require 'json'
+require 'byebug'
+require_relative 'post'
+
+# create data post
+post '/posts' do
+  begin
+    request_body = JSON.parse(request.body.read)
+    post = Post.create(title: request_body["title"], content: request_body["content"])
+
+    content_type :json
+    status 201
+    return { post_id: post.id, message: 'success' }.to_json
+  rescue => e
+    content_type :json
+    status 500
+    return { error: e.message }.to_json
+  end
+end
+
+# server errors simulations
+post '/simulation_server_problems' do
+  status 503
+
+  content_type :json
+  return { error: 'The server is having problems.' }.to_json
+end
+
+# open terminal
+# cd your_project
+# bundle install
+# bundle exec ruby app.rb
+# 1. success scenario
+# curl --location 'http://localhost:4567/posts' \
+# --header 'Content-Type: application/json' \
+# --data '{
+#     "title": "Post 1",
+#     "content": "Content 1"
+# }'
+# 2. failed scenario
+# curl --location 'http://localhost:4567/simulation_server_problems' \
+# --header 'Content-Type: application/json' \
+# --data '{
+#     "title": "Post 1",
+#     "content": "Content 1"
+# }'
+```
+
+```ruby
+# test.rb
+
+require 'cutter'
+require 'json'
+require 'httparty'
+require 'byebug'
+
+# 3rdparty api call simulation.
+class ThirdPartyService
+  # method random simulation response from 3rd party
+  def self.call(url, body, headers)
+    response = HTTParty.post(url, 
+      body: body,
+      headers: headers,
+      timeout: 3
+    )
+    
+    response
+  end
+end
+
+puts "================ success simulation ========================="
+cb = Cutter::CircuitBreaker.new(maximum_failure_limit: 3, waiting_time: 1)
+5.times do |i|
+  begin
+    puts "==> Try to-#{i + 1}"
+
+    response = cb.run do
+      ThirdPartyService.call("http://localhost:4567/posts", 
+        { title: "Post #{i + 1}", content: "Content #{i + 1}" }.to_json, 
+        { 'Content-Type' => 'application/json' })
+    end
+    
+    puts "Response: '#{response}'"
+  rescue => e
+    puts "Error Response : #{e.message}"
+
+    sleep 2
+  end
+end
+
+sleep 2
+
+puts "================ failed simulation ========================="
+cb2 = Cutter::CircuitBreaker.new(maximum_failure_limit: 3, waiting_time: 1)
+5.times do |i|
+  begin
+    puts "==> Try to-#{i + 1}"
+    
+    response2 = cb2.run do
+      ThirdPartyService.call("http://localhost:4567/simulation_server_problems", 
+        { title: "Post #{i + 1}", content: "Content #{i + 1}" }.to_json, 
+        { 'Content-Type' => 'application/json' })
+    end
+    
+    puts "Response: '#{response2}'"
+  rescue => e
+    puts "Error Response : #{e.message}"
+
+    sleep 2
+  end
+end
+
+# how to run : 
+# note : run 'bundle exec ruby app.rb' is required
+# 1. bundle install
+# 2. bundle exec ruby test.rb
+```
 
 ## Contributing
 

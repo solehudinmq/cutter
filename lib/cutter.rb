@@ -1,11 +1,11 @@
 # frozen_string_literal: true
 
 require_relative "cutter/version"
+require 'httparty'
 
 module Cutter
-  class Error < StandardError; end
-  # Your code goes here...
-
+  class ResponseFailed < StandardError; end
+  
   class CircuitBreaker
     attr_reader :state
 
@@ -30,12 +30,18 @@ module Cutter
 
         begin
           result = yield # response from the api call in the code block.
-
+          
+          unless result.success? 
+            raise ResponseFailed, "Failure occurred, with status code: #{result.code}" 
+          end
+          
           success
-          result
-        rescue => e
+          
+          true
+        rescue ResponseFailed => e
           failure
-          raise e
+
+          false
         end
       end
     end

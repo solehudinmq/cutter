@@ -5,6 +5,8 @@ source "https://rubygems.org"
 # Specify your gem's dependencies in cutter.gemspec
 gemspec
 
+gem "httparty"
+
 group :development, :test do
     gem "byebug"
 end
