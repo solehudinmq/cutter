@@ -33,7 +33,7 @@ In your ruby ​​code, add this:
 ```ruby
 require 'cutter'
 
-cb = Cutter::CircuitBreaker.new(maximum_failure_limit: 3, waiting_time: 5)
+cb = Cutter::CircuitBreaker.new(maximum_failure_limit: maximum_failure_limit, waiting_time: waiting_time)
 
 response = cb.run do
     # call api third party here (must use httparty gem)
