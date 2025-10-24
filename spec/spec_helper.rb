@@ -4,6 +4,7 @@ require "cutter"
 require "byebug"
 require "json"
 
+require_relative "../example/post"
 require_relative "../example/third_party_service"
 
 RSpec.configure do |config|

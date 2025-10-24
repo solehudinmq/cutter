@@ -2,6 +2,10 @@
 
 # required : bundle exec ruby app.rb
 RSpec.describe Cutter::CircuitBreaker do
+  before(:all) do
+    Post.delete_all
+  end
+
   it "has a version number" do
     expect(Cutter::VERSION).not_to be nil
   end
