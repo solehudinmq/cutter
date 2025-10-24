@@ -1,8 +1,9 @@
-PATH
-  remote: ..
+GIT
+  remote: git@github.com:solehudinmq/cutter.git
+  revision: 1d088291ede81b914e91dc130ef94ad52a86a094
+  branch: main
   specs:
     cutter (0.1.0)
-      httparty (~> 0.23)
 
 GEM
   remote: https://rubygems.org/

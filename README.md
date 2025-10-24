@@ -151,12 +151,9 @@ end
 ```
 
 ```ruby
-# test.rb
+# third_party_service.rb
 
-require 'cutter'
-require 'json'
 require 'httparty'
-require 'byebug'
 
 # 3rdparty api call simulation.
 class ThirdPartyService
@@ -171,6 +168,16 @@ class ThirdPartyService
     response
   end
 end
+```
+
+```ruby
+# test.rb
+
+require 'cutter'
+require 'json'
+require 'byebug'
+
+require_relative 'third_party_service'
 
 puts "================ success simulation ========================="
 cb = Cutter::CircuitBreaker.new(maximum_failure_limit: 3, waiting_time: 1)

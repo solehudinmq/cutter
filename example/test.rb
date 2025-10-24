@@ -1,21 +1,8 @@
 require 'cutter'
 require 'json'
-require 'httparty'
 require 'byebug'
 
-# 3rdparty api call simulation.
-class ThirdPartyService
-  # method random simulation response from 3rd party
-  def self.call(url, body, headers)
-    response = HTTParty.post(url, 
-      body: body,
-      headers: headers,
-      timeout: 3
-    )
-    
-    response
-  end
-end
+require_relative 'third_party_service'
 
 puts "================ success simulation ========================="
 cb = Cutter::CircuitBreaker.new(maximum_failure_limit: 3, waiting_time: 1)

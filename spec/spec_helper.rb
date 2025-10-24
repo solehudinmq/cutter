@@ -1,7 +1,10 @@
 # frozen_string_literal: true
 
 require "cutter"
-require 'byebug'
+require "byebug"
+require "json"
+
+require_relative "../example/third_party_service"
 
 RSpec.configure do |config|
   # Enable flags like --only-failures and --next-failure
