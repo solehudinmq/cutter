@@ -1,21 +1,21 @@
 GIT
   remote: git@github.com:solehudinmq/cutter.git
-  revision: df17c12afbcb40ca5ea50e967f52950f2515013c
+  revision: a6e8369d87c071a9d59d6da737fc4a5b4405ef21
   branch: main
   specs:
     cutter (0.1.0)
-      httparty (~> 0.23)
+      httparty (~> 0.21)
 
 GEM
   remote: https://rubygems.org/
   specs:
-    activemodel (8.1.0)
-      activesupport (= 8.1.0)
-    activerecord (8.1.0)
-      activemodel (= 8.1.0)
-      activesupport (= 8.1.0)
+    activemodel (8.1.1)
+      activesupport (= 8.1.1)
+    activerecord (8.1.1)
+      activemodel (= 8.1.1)
+      activesupport (= 8.1.1)
       timeout (>= 0.4.0)
-    activesupport (8.1.0)
+    activesupport (8.1.1)
       base64
       bigdecimal
       concurrent-ruby (~> 1.0, >= 1.3.1)
@@ -41,7 +41,7 @@ GEM
       multi_xml (>= 0.5.2)
     i18n (1.14.7)
       concurrent-ruby (~> 1.0)
-    json (2.15.1)
+    json (2.15.2)
     logger (1.7.0)
     mini_mime (1.1.5)
     minitest (5.26.0)
@@ -49,10 +49,10 @@ GEM
       bigdecimal (~> 3.1)
     mustermann (3.0.4)
       ruby2_keywords (~> 0.0.1)
-    nio4r (2.7.4)
+    nio4r (2.7.5)
     puma (7.1.0)
       nio4r (~> 2.0)
-    rack (3.2.3)
+    rack (3.2.4)
     rack-protection (4.2.1)
       base64 (>= 0.1.0)
       logger (>= 1.6.0)
@@ -73,10 +73,10 @@ GEM
       tilt (~> 2.0)
     sqlite3 (2.7.4-x86_64-linux-gnu)
     tilt (2.6.1)
-    timeout (0.4.3)
+    timeout (0.4.4)
     tzinfo (2.0.6)
       concurrent-ruby (~> 1.0)
-    uri (1.0.4)
+    uri (1.1.1)
 
 PLATFORMS
   x86_64-linux
@@ -85,7 +85,6 @@ DEPENDENCIES
   activerecord
   byebug
   cutter!
-  httparty
   puma (~> 7.1)
   rackup (~> 2.2)
   sinatra
