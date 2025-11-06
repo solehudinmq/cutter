@@ -5,7 +5,7 @@ source "https://rubygems.org"
 # gem "rails"
 
 gem "cutter", git: "git@github.com:solehudinmq/cutter.git", branch: "main"
-# gem "cutter", path: "../cutter" # for test in localhost
+# gem "cutter", path: "../" # for test in localhost
 gem "byebug"
 gem "sinatra"
 gem "activerecord"
