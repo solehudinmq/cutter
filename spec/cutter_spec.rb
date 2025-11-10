@@ -11,6 +11,7 @@ RSpec.describe Cutter::CircuitBreaker do
   end
 
   it "return state is still closed" do
+    # with the set parameter values
     cb = Cutter::CircuitBreaker.new(maximum_failure_limit: 3, waiting_time: 1)
     
     expect(cb.state).to be :closed
@@ -18,20 +19,45 @@ RSpec.describe Cutter::CircuitBreaker do
     1.times do |i|
       begin
         response = cb.run do
-          ThirdPartyService.call("http://localhost:4567/posts", 
-            { title: "Post #{i + 1}", content: "Content #{i + 1}" }.to_json, 
-            { 'Content-Type' => 'application/json' })
+          HTTParty.post("http://localhost:4567/posts", 
+            body: { title: "Post #{i + 1}", content: "Content #{i + 1}" }.to_json, 
+            headers: { 'Content-Type' => 'application/json' },
+            timeout: 3
+          )
         end
-        
-        puts "Response: '#{response}'"
+
+        puts "Response With Parameter : '#{response}'"
       rescue => e
-        puts "Error Response : #{e.message}"
+        puts "Error Response With Parameter : #{e.message}"
 
         sleep 2
       end
     end
 
     expect(cb.state).to be :closed
+
+    # with default parameter values
+    cb2 = Cutter::CircuitBreaker.new(maximum_failure_limit: nil, waiting_time: nil)
+
+    1.times do |i|
+      begin
+        response = cb2.run do
+          HTTParty.post("http://localhost:4567/posts", 
+            body: { title: "Post #{i + 1}", content: "Content #{i + 1}" }.to_json, 
+            headers: { 'Content-Type' => 'application/json' },
+            timeout: 3
+          )
+        end
+
+        puts "Response Without Parameter : '#{response}'"
+      rescue => e
+        puts "Error Response Without Parameter : #{e.message}"
+
+        sleep 2
+      end
+    end
+
+    expect(cb2.state).to be :closed
   end
 
   it "return state changes to open" do
@@ -44,9 +70,11 @@ RSpec.describe Cutter::CircuitBreaker do
         puts "==> Try to-#{i + 1}"
         
         response = cb.run do
-          ThirdPartyService.call("http://localhost:4567/simulation_server_problems", 
-            { title: "Post #{i + 1}", content: "Content #{i + 1}" }.to_json, 
-            { 'Content-Type' => 'application/json' })
+          HTTParty.post("http://localhost:4567/simulation_server_problems", 
+            body: { title: "Post #{i + 1}", content: "Content #{i + 1}" }.to_json, 
+            headers: { 'Content-Type' => 'application/json' },
+            timeout: 3
+          )
         end
         
         puts "Response: '#{response}'"
@@ -72,16 +100,20 @@ RSpec.describe Cutter::CircuitBreaker do
         if i == 4
           # state changes to closed after waiting 1 second and successfully creating a post
           response = cb.run do
-            ThirdPartyService.call("http://localhost:4567/posts", 
-              { title: "Post #{i + 1}", content: "Content #{i + 1}" }.to_json, 
-              { 'Content-Type' => 'application/json' })
+            HTTParty.post("http://localhost:4567/posts", 
+              body: { title: "Post #{i + 1}", content: "Content #{i + 1}" }.to_json, 
+              headers: { 'Content-Type' => 'application/json' },
+              timeout: 3
+            )
           end
         else
           # state changes to open after 3x failure
           response = cb.run do
-            ThirdPartyService.call("http://localhost:4567/simulation_server_problems", 
-              { title: "Post #{i + 1}", content: "Content #{i + 1}" }.to_json, 
-              { 'Content-Type' => 'application/json' })
+            HTTParty.post("http://localhost:4567/simulation_server_problems", 
+              body: { title: "Post #{i + 1}", content: "Content #{i + 1}" }.to_json, 
+              headers: { 'Content-Type' => 'application/json' },
+              timeout: 3
+            )
           end
         end
         
@@ -94,13 +126,5 @@ RSpec.describe Cutter::CircuitBreaker do
     end
 
     expect(cb.state).to be :closed
-  end
-
-  it "return error, parameter cannot be empty" do
-    begin
-      Cutter::CircuitBreaker.new(maximum_failure_limit: nil, waiting_time: 'a')
-    rescue => e
-      expect(e.message).to eq "The maximum_failure_limit or waiting_time value parameters cannot be empty."
-    end
   end
 end

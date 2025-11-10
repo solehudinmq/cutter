@@ -52,8 +52,8 @@ end
 ```
 
 description of parameters:
-- maximum_failure_limit = is the maximum failure limit when the state is closed. If the failure exceeds the maximum_failure_limit then the state will change to open. Example : 3 (meaning 3 times failed).
-- waiting_time = is the waiting time when the state is open, if it exceeds this waiting time then the state will change to half open. Example : 5 (This means the waiting time from state open to half open is 5 seconds).
+- maximum_failure_limit = is the maximum failure limit when the state is closed. If the failure exceeds the maximum_failure_limit then the state will change to open. Example : 5 [meaning 5 times failed] ( default value is 3 ).
+- waiting_time = is the waiting time when the state is open, if it exceeds this waiting time then the state will change to half open. Example : 3 [This means the waiting time from state open to half open is 5 seconds] ( default value is 5 ).
 
 For more details, you can see the following example : [example/test.rb](https://github.com/solehudinmq/cutter/blob/development/example/test.rb).
 
