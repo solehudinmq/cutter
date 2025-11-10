@@ -1,6 +1,6 @@
 GIT
   remote: git@github.com:solehudinmq/cutter.git
-  revision: 68b121a8777f58503dd4078721a8cb55a86f4deb
+  revision: 909c163459a3e1cb83acb37273fd767d4849e472
   branch: main
   specs:
     cutter (0.1.0)
