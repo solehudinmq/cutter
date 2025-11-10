@@ -16,9 +16,9 @@ cb = Cutter::CircuitBreaker.new(maximum_failure_limit: 3, waiting_time: 1)
         { 'Content-Type' => 'application/json' })
     end
     
-    puts "Response: '#{response}'"
+    puts "Response 1 : #{response}"
   rescue => e
-    puts "Error Response : #{e.message}"
+    puts "Error Response 1 : #{e.message}"
 
     sleep 2
   end
@@ -26,7 +26,7 @@ end
 
 sleep 2
 
-puts "================ failed simulation ========================="
+puts "================ failed simulation 1 ========================="
 cb2 = Cutter::CircuitBreaker.new(maximum_failure_limit: 3, waiting_time: 1)
 5.times do |i|
   begin
@@ -38,12 +38,21 @@ cb2 = Cutter::CircuitBreaker.new(maximum_failure_limit: 3, waiting_time: 1)
         { 'Content-Type' => 'application/json' })
     end
     
-    puts "Response: '#{response2}'"
+    puts "Response 2 : #{response2}"
   rescue => e
-    puts "Error Response : #{e.message}"
+    puts "Error Response 1 : #{e.message}"
 
     sleep 2
   end
+end
+
+sleep 2
+
+puts "================ failed simulation 2 ========================="
+begin
+  Cutter::CircuitBreaker.new(maximum_failure_limit: nil, waiting_time: nil)
+rescue => e
+  puts "Error Response 2 : #{e.message}"
 end
 
 # how to run : 

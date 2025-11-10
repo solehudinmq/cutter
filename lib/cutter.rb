@@ -12,8 +12,11 @@ module Cutter
     # maximum_failure_limit = is the maximum failure limit when the state is closed. If the failure exceeds the maximum_failure_limit then the state will change to open. Example : 3 (meaning 3 times failed).
     # waiting_time = is the waiting time when the state is open, if it exceeds this waiting time then the state will change to half open. Example : 30 (This means the waiting time from state open to half open is 30 seconds).
     def initialize(maximum_failure_limit:, waiting_time:)
-      @maximum_failure_limit = maximum_failure_limit
-      @waiting_time = waiting_time
+      @maximum_failure_limit = maximum_failure_limit.to_i
+      @waiting_time = waiting_time.to_i
+
+      raise "The maximum_failure_limit or waiting_time value parameters cannot be empty." if (@maximum_failure_limit < 1 || @waiting_time < 1)
+
       @state = :closed # The default state is closed.
       @failure_count = 0 # number of failure counters.
       @last_failure_time = nil # last recorded failure time.

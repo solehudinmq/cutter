@@ -95,4 +95,12 @@ RSpec.describe Cutter::CircuitBreaker do
 
     expect(cb.state).to be :closed
   end
+
+  it "return error, parameter cannot be empty" do
+    begin
+      Cutter::CircuitBreaker.new(maximum_failure_limit: nil, waiting_time: 'a')
+    rescue => e
+      expect(e.message).to eq "The maximum_failure_limit or waiting_time value parameters cannot be empty."
+    end
+  end
 end
