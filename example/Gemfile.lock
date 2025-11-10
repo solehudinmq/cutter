@@ -1,6 +1,6 @@
 GIT
   remote: git@github.com:solehudinmq/cutter.git
-  revision: a6e8369d87c071a9d59d6da737fc4a5b4405ef21
+  revision: 68b121a8777f58503dd4078721a8cb55a86f4deb
   branch: main
   specs:
     cutter (0.1.0)
@@ -41,10 +41,10 @@ GEM
       multi_xml (>= 0.5.2)
     i18n (1.14.7)
       concurrent-ruby (~> 1.0)
-    json (2.15.2)
+    json (2.16.0)
     logger (1.7.0)
     mini_mime (1.1.5)
-    minitest (5.26.0)
+    minitest (5.26.1)
     multi_xml (0.7.2)
       bigdecimal (~> 3.1)
     mustermann (3.0.4)
@@ -71,7 +71,7 @@ GEM
       rack-protection (= 4.2.1)
       rack-session (>= 2.0.0, < 3)
       tilt (~> 2.0)
-    sqlite3 (2.7.4-x86_64-linux-gnu)
+    sqlite3 (2.8.0-x86_64-linux-gnu)
     tilt (2.6.1)
     timeout (0.4.4)
     tzinfo (2.0.6)
