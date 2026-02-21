@@ -1,55 +1,73 @@
 require 'cutter'
-require 'json'
-require 'byebug'
-require 'httparty'
 
-puts "================ success simulation ========================="
-cb = Cutter::CircuitBreaker.new(maximum_failure_limit: 3, waiting_time: 1)
+require_relative 'models/product'
+
+Product.delete_all
+
+puts "======================== STARTED [ case of targeted API performance in good condition ] ========================"
+cb = ::Cutter::CircuitBreaker.new(strategy: :sync, threshold: 2, timeout: 1)
+
 5.times do |i|
+  id = i + 1
   begin
-    puts "==> Try to-#{i + 1}"
-
-    response = cb.run do
-      HTTParty.post("http://localhost:4567/posts", 
-        body: { title: "Post #{i + 1}", content: "Content #{i + 1}" }.to_json, 
-        headers: { 'Content-Type' => 'application/json' },
-        timeout: 3
-      )
-    end
+    result = cb.perform(url: "https://dummyjson.com/products/#{id}", http_method: :GET, headers: { 'Content-Type': 'application/json' }, timeout: 5)
+    puts "Request #{i+1} successful, with status code #{result.code}."
     
-    puts "Response : #{response}"
+    payload = JSON.parse(result.body)
+    product = Product.new(title: payload["title"], description: payload["description"], category: payload["category"], price: payload["price"])
+    if product.save
+      puts "Product with id #{product.id} successfully created"
+    else
+      puts "Product with request #{i+1} failed to created"
+    end
   rescue => e
-    puts "Error Response : #{e.message}"
-
-    sleep 2
+    puts "Request #{i+1} failed, with message #{e.message}."
   end
+
+  sleep 1
 end
 
-sleep 2
+puts "\n"
+puts "============= [ all product data ] ================="
+puts "#{Product.all.to_a}"
+puts "============= [ all product data ] ================="
+puts "\n"
 
-puts "================ failed simulation ========================="
-cb2 = Cutter::CircuitBreaker.new(maximum_failure_limit: 3, waiting_time: 1)
-5.times do |i|
+puts "======================== ENDED [ case of targeted API performance in good condition ] ========================"
+puts "\n"
+
+Product.delete_all
+
+puts "======================== STARTED [ case of targeted API performance in problematic conditions ] ========================"
+cb = ::Cutter::CircuitBreaker.new(strategy: :sync, threshold: 2, timeout: 1)
+
+7.times do |i|
+  id = i + 1
   begin
-    puts "==> Try to-#{i + 1}"
-    
-    response2 = cb2.run do
-      HTTParty.post("http://localhost:4567/simulation_server_problems", 
-        body: { title: "Post #{i + 1}", content: "Content #{i + 1}" }.to_json,
-        headers: { 'Content-Type' => 'application/json' },
-        timeout: 3
-      )
-    end
-    
-    puts "Response : #{response2}"
-  rescue => e
-    puts "Error Response : #{e.message}"
+    delay_time = 5000
+    delay_time = 2000 if i > 3
 
-    sleep 2
+    result = cb.perform(url: "https://dummyjson.com/products/#{id}/?delay=#{delay_time}", http_method: :GET, headers: { 'Content-Type': 'application/json' }, timeout: 3)
+    puts "Request #{i+1} successful, with status code #{result.code}"
+
+    payload = JSON.parse(result.body)
+    product = Product.new(title: payload["title"], description: payload["description"], category: payload["category"], price: payload["price"])
+    if product.save
+      puts "Product with id #{product.id} successfully created"
+    else
+      puts "Product with request #{i+1} failed to created"
+    end
+  rescue => e
+    puts "Request #{i+1} failed, with message #{e.message}"
   end
+  sleep 1
 end
 
-# how to run : 
-# note : run 'bundle exec ruby app.rb' is required
-# 1. bundle install
-# 2. bundle exec ruby test.rb
+puts "\n"
+puts "============= [ all product data ] ================="
+puts "#{Product.all.to_a}"
+puts "============= [ all product data ] ================="
+puts "\n"
+
+puts "======================== ENDED [ case of targeted API performance in problematic conditions ] ========================"
+puts "\n"

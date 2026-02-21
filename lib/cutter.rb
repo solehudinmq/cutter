@@ -1,86 +1,38 @@
 # frozen_string_literal: true
 
+require_relative "cutter/strategy"
 require_relative "cutter/version"
-require 'httparty'
+require_relative "cutter/utils/url_validator"
 
 module Cutter
-  class ResponseFailed < StandardError; end
-  
   class CircuitBreaker
-    attr_reader :state
+    include ::Cutter::Strategy
+    include ::Cutter::UrlValidator
 
-    # maximum_failure_limit = is the maximum failure limit when the state is closed. If the failure exceeds the maximum_failure_limit then the state will change to open. Example : 3 (meaning 3 times failed).
-    # waiting_time = is the waiting time when the state is open, if it exceeds this waiting time then the state will change to half open. Example : 30 (This means the waiting time from state open to half open is 30 seconds).
-    def initialize(maximum_failure_limit: nil, waiting_time: nil)
-      @maximum_failure_limit = maximum_failure_limit || 3
-      @waiting_time = waiting_time || 5
-      @state = :closed # The default state is closed.
-      @failure_count = 0 # number of failure counters.
-      @last_failure_time = nil # last recorded failure time.
-      @mutex = Mutex.new # Untuk thread safety
+    HTTP_METHODS = [:GET, :POST, :PUT, :PATCH, :DELETE].freeze
+
+    def initialize(strategy: :sync, threshold: 3, timeout: 5)
+      @strategy = init_strategy(strategy: strategy, threshold: threshold, timeout: timeout)
     end
 
-    def run
-      # thread is locked
-      @mutex.synchronize do
-        transition_to_half_open
+    def perform(url:, http_method: :GET, **options)
+      raise ArgumentError, "Url #{url} is not valid." unless valid_url?(url)
+      raise ArgumentError, "Http method #{http_method} is not recognized." unless HTTP_METHODS.include?(http_method)
 
-        # request is rejected if the state is open.
-        raise "Circuit breaker is open, request is rejected." if @state == :open
+      headers, body, timeout = fetch_request(http_method: http_method, options: options)
 
-        begin
-          result = yield # response from the api call in the code block.
-          
-          unless result.success? 
-            raise ResponseFailed, "Failure occurred, with status code: #{result.code}" 
-          end
-          
-          success
-          
-          true
-        rescue ResponseFailed => e
-          failure
-
-          false
-        end
-      end
+      @strategy.perform(url: url, http_method: http_method, headers: headers, body: body, timeout: timeout)
     end
 
     private
-      def transition_to_half_open
-        # state open and the wait time has passed.
-        if @state == :open && (Time.now - @last_failure_time) > @waiting_time
-          @state = :half_open # The state changes from open to half open.
-        end
-      end
+      def fetch_request(http_method:, options:)
+        headers = options[:headers] || {}
+        body = options[:body] || {}
+        timeout = (options[:timeout] || 10).to_i
 
-      # update state becomes open.
-      def open!
-        @state = :open
-        @last_failure_time = Time.now
-      end
+        raise ArgumentError, "Key parameter with 'body' name is mandatory." if [:POST, :PUT, :PATCH].include?(http_method) && body.empty?
 
-      def failure
-        if @state == :half_open
-          open!
-
-          return
-        end
-
-        @failure_count += 1 # the number of failures increases.
-
-        # the number of failures has exceeded the maximum failure limit.
-        if @failure_count >= @maximum_failure_limit
-          open!
-        end
-      end
-
-      def success
-        if @state == :half_open
-          @state = :closed
-        end
-
-        @failure_count = 0 # reset number of failures.
+        [ headers, body, timeout ]
       end
   end
 end

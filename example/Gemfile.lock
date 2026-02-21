@@ -1,7 +1,5 @@
-GIT
-  remote: git@github.com:solehudinmq/cutter.git
-  revision: 909c163459a3e1cb83acb37273fd767d4849e472
-  branch: main
+PATH
+  remote: ..
   specs:
     cutter (0.1.0)
       httparty (~> 0.21)
@@ -47,32 +45,8 @@ GEM
     minitest (5.26.1)
     multi_xml (0.7.2)
       bigdecimal (~> 3.1)
-    mustermann (3.0.4)
-      ruby2_keywords (~> 0.0.1)
-    nio4r (2.7.5)
-    puma (7.1.0)
-      nio4r (~> 2.0)
-    rack (3.2.4)
-    rack-protection (4.2.1)
-      base64 (>= 0.1.0)
-      logger (>= 1.6.0)
-      rack (>= 3.0.0, < 4)
-    rack-session (2.1.1)
-      base64 (>= 0.1.0)
-      rack (>= 3.0.0)
-    rackup (2.2.1)
-      rack (>= 3)
-    ruby2_keywords (0.0.5)
     securerandom (0.4.1)
-    sinatra (4.2.1)
-      logger (>= 1.6.0)
-      mustermann (~> 3.0)
-      rack (>= 3.0.0, < 4)
-      rack-protection (= 4.2.1)
-      rack-session (>= 2.0.0, < 3)
-      tilt (~> 2.0)
     sqlite3 (2.8.0-x86_64-linux-gnu)
-    tilt (2.6.1)
     timeout (0.4.4)
     tzinfo (2.0.6)
       concurrent-ruby (~> 1.0)
@@ -85,9 +59,6 @@ DEPENDENCIES
   activerecord
   byebug
   cutter!
-  puma (~> 7.1)
-  rackup (~> 2.2)
-  sinatra
   sqlite3
 
 BUNDLED WITH
