@@ -2,7 +2,7 @@
 
 require_relative "cutter/version"
 require_relative "cutter/utils/url_validator"
-require_relative "cutter/circuit_breaker"
+require_relative "cutter/circuit_breaker_strategy.rb"
 
 module Cutter
   class CircuitBreaker
@@ -11,7 +11,7 @@ module Cutter
     HTTP_METHODS = [:GET, :POST, :PUT, :PATCH, :DELETE].freeze
 
     def initialize(threshold: 3, timeout: 5)
-      @strategy = ::Cutter::Strategy::CircuitBreaker.new(threshold: threshold, timeout: timeout)
+      @strategy = ::Cutter::CircuitBreakerStrategy.new(threshold: threshold, timeout: timeout)
     end
 
     def perform(url:, http_method: :GET, **options)
