@@ -5,7 +5,7 @@ require_relative 'models/product'
 Product.delete_all
 
 puts "======================== STARTED [ case of targeted API performance in good condition ] ========================"
-cb = ::Cutter::CircuitBreaker.new(strategy: :sync, threshold: 2, timeout: 1)
+cb = ::Cutter::CircuitBreaker.new(threshold: 2, timeout: 1)
 
 5.times do |i|
   id = i + 1
@@ -39,7 +39,7 @@ puts "\n"
 Product.delete_all
 
 puts "======================== STARTED [ case of targeted API performance in problematic conditions ] ========================"
-cb = ::Cutter::CircuitBreaker.new(strategy: :sync, threshold: 2, timeout: 1)
+cb = ::Cutter::CircuitBreaker.new(threshold: 2, timeout: 1)
 
 7.times do |i|
   id = i + 1
