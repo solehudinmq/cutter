@@ -1,18 +1,17 @@
 # frozen_string_literal: true
 
-require_relative "cutter/strategy"
 require_relative "cutter/version"
 require_relative "cutter/utils/url_validator"
+require_relative "cutter/circuit_breaker"
 
 module Cutter
   class CircuitBreaker
-    include ::Cutter::Strategy
     include ::Cutter::UrlValidator
 
     HTTP_METHODS = [:GET, :POST, :PUT, :PATCH, :DELETE].freeze
 
-    def initialize(strategy: :sync, threshold: 3, timeout: 5)
-      @strategy = init_strategy(strategy: strategy, threshold: threshold, timeout: timeout)
+    def initialize(threshold: 3, timeout: 5)
+      @strategy = ::Cutter::Strategy::CircuitBreaker.new(threshold: threshold, timeout: timeout)
     end
 
     def perform(url:, http_method: :GET, **options)

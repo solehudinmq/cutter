@@ -1,11 +1,10 @@
 require 'httparty'
 require 'json'
-require_relative '../base/abstract_strategy'
-require_relative '../utils/logging'
+require_relative 'utils/logging'
 
 module Cutter
-  module Sync
-    class CircuitBreaker < ::Cutter::AbstractStrategy
+  module Strategy
+    class CircuitBreaker
       include ::Cutter::Logging
 
       def initialize(threshold: 3, timeout: 5)
