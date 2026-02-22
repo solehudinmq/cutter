@@ -1,4 +1,5 @@
 require "logger"
+require "json"
 
 module Cutter
   module Logging
