@@ -4,7 +4,7 @@ puts "======="
 puts "1. GET"
 puts "======="
 
-cb = ::Cutter::CircuitBreaker.new(threshold: 2, timeout: 1)
+cb = ::Cutter::CircuitBreaker.new(failure_threshold: 2, waiting_time: 1)
 
 datas = []
 7.times do |i|
@@ -33,7 +33,7 @@ puts "======="
 puts "2. POST"
 puts "======="
 
-cb = ::Cutter::CircuitBreaker.new(threshold: 2, timeout: 1)
+cb = ::Cutter::CircuitBreaker.new(failure_threshold: 2, waiting_time: 1)
 
 datas = []
 7.times do |i|
@@ -62,7 +62,7 @@ puts "======="
 puts "3. PUT"
 puts "======="
 
-cb = ::Cutter::CircuitBreaker.new(threshold: 2, timeout: 1)
+cb = ::Cutter::CircuitBreaker.new(failure_threshold: 2, waiting_time: 1)
 
 datas = []
 7.times do |i|
@@ -91,7 +91,7 @@ puts "========"
 puts "4. PATCH"
 puts "========"
 
-cb = ::Cutter::CircuitBreaker.new(threshold: 2, timeout: 1)
+cb = ::Cutter::CircuitBreaker.new(failure_threshold: 2, waiting_time: 1)
 
 datas = []
 7.times do |i|
@@ -120,7 +120,7 @@ puts "========="
 puts "5. DELETE"
 puts "========="
 
-cb = ::Cutter::CircuitBreaker.new(threshold: 2, timeout: 1)
+cb = ::Cutter::CircuitBreaker.new(failure_threshold: 2, waiting_time: 1)
 
 datas = []
 7.times do |i|

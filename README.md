@@ -8,15 +8,16 @@ With the Cutter library, your Ruby application will remain stable even if a conn
 
 potential problems when 3rdparty applications experience problems : 
 
-![Logo Ruby](https://github.com/solehudinmq/cutter/blob/development/high_flow/cutter-problem.jpg)
+![Logo Ruby](./high_flow/cutter-problem.jpg)
 
 circuit breaker solution to prevent system failure due to problematic 3rdparty applications :
 
-![Logo Ruby](https://github.com/solehudinmq/cutter/blob/development/high_flow/cutter-solution.jpg)
+![Logo Ruby](./high_flow/cutter-solution.jpg)
 
 ## Requirement
 
-The minimum version of Ruby that must be installed is 3.0.
+Minimum software version that must be installed on your device :
+- ruby 3.0
 
 Requires dependencies to the following gems :
 - httparty
@@ -44,22 +45,32 @@ In your ruby ​​code, add this:
 ```ruby
 require 'cutter'
 
-cb = Cutter::CircuitBreaker.new(maximum_failure_limit: maximum_failure_limit, waiting_time: waiting_time)
+cb = ::Cutter::CircuitBreaker.new(failure_threshold: <your-failure-threshold>, waiting_time: <your-waiting-time>)
 
-response = cb.run do
-  # call api third party here (must use httparty gem)
-end
+result = cb.perform(url: <your-url>, http_method: <your-http-method>, headers: <your-request-headers>, body: <your-request-body>, timeout: <your-timeout-limit-calling-destination-api>)
+
+# how to call response code : 
+result.code
+# how to call response body :
+result.body
+# how to call response headers :
+result.headers
 ```
 
 description of parameters:
-- maximum_failure_limit = is the maximum failure limit when the state is closed. If the failure exceeds the maximum_failure_limit then the state will change to open. Example : 5 ( default value is 3 ).
-- waiting_time = is the waiting time when the state is open, if it exceeds this waiting time then the state will change to half open. Example : 3 ( default value is 5 ).
+- failure_threshold : maximum allowable failure, for example : 3.
+- waiting_time : waiting time for state open to become state half open, for example : 5.
+- url : destination api url, for example : 'https://dummyjson.com/products/1'.
+- http_method : the type of http method used to call the target api, for example : :GET / :POST / :PUT / :PATCH / :DELETE.
+- headers : request headers, for example : { 'Content-Type': 'application/json' }.
+- body : request body, for example : { title: "Produk Dummy Title 1", description: "Produk Dummy Description 1" }.
+- timeout : maximum timeout limit in seconds when calling the target api, for example : 10.
 
-For more details, you can see the following example : [example/test.rb](https://github.com/solehudinmq/cutter/blob/development/example/test.rb).
+For more details, you can see the following example : [example/app.rb](./example/app.rb).
 
 ## Example Implementation in Your Application
 
-For examples of applications that use this gem, you can see them here : [example](https://github.com/solehudinmq/cutter/tree/development/example).
+For examples of applications that use this gem, you can see them here : [example](./example).
 
 ## Contributing
 

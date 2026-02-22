@@ -1,130 +1,235 @@
 # frozen_string_literal: true
 
-# required : bundle exec ruby app.rb
 RSpec.describe Cutter::CircuitBreaker do
-  before(:all) do
-    Post.delete_all
-  end
-
   it "has a version number" do
     expect(Cutter::VERSION).not_to be nil
   end
 
-  it "return state is still closed" do
-    # with the set parameter values
-    cb = Cutter::CircuitBreaker.new(maximum_failure_limit: 3, waiting_time: 1)
-    
-    expect(cb.state).to be :closed
+  context "method :GET" do
+    it "return the final state to :closed" do
+      cb = ::Cutter::CircuitBreaker.new(failure_threshold: 2, waiting_time: 1)
+      
+      expect(cb.current_state).to be :closed
 
-    1.times do |i|
-      begin
-        response = cb.run do
-          HTTParty.post("http://localhost:4567/posts", 
-            body: { title: "Post #{i + 1}", content: "Content #{i + 1}" }.to_json, 
-            headers: { 'Content-Type' => 'application/json' },
-            timeout: 3
-          )
+      3.times do |i|
+        id = i + 1
+        begin
+          result = cb.perform(url: "https://dummyjson.com/products/#{id}/?delay=2000", http_method: :GET, headers: { 'Content-Type': 'application/json' }, timeout: 3)
+          expect(result.code).to be(200)
+        rescue => e
+          puts "Request #{id} failed, with message #{e.message}"
         end
 
-        puts "Response With Parameter : '#{response}'"
-      rescue => e
-        puts "Error Response With Parameter : #{e.message}"
-
-        sleep 2
+        sleep 1
       end
+
+      expect(cb.current_state).to be :closed
     end
 
-    expect(cb.state).to be :closed
+    it "return the final state to :open" do
+      cb = ::Cutter::CircuitBreaker.new(failure_threshold: 2, waiting_time: 1)
+      
+      expect(cb.current_state).to be :closed
 
-    # with default parameter values
-    cb2 = Cutter::CircuitBreaker.new(maximum_failure_limit: nil, waiting_time: nil)
-
-    1.times do |i|
-      begin
-        response = cb2.run do
-          HTTParty.post("http://localhost:4567/posts", 
-            body: { title: "Post #{i + 1}", content: "Content #{i + 1}" }.to_json, 
-            headers: { 'Content-Type' => 'application/json' },
-            timeout: 3
-          )
+      3.times do |i|
+        id = i + 1
+        begin
+          result = cb.perform(url: "https://dummyjson.com/products/#{id}/?delay=5000", http_method: :GET, headers: { 'Content-Type': 'application/json' }, timeout: 3)
+          expect(result.code).to be(200)
+        rescue => e
+          puts "Request #{id} failed, with message #{e.message}"
         end
 
-        puts "Response Without Parameter : '#{response}'"
-      rescue => e
-        puts "Error Response Without Parameter : #{e.message}"
-
-        sleep 2
+        sleep 1
       end
-    end
 
-    expect(cb2.state).to be :closed
+      expect(cb.current_state).to be :open
+    end
   end
 
-  it "return state changes to open" do
-    cb = Cutter::CircuitBreaker.new(maximum_failure_limit: 3, waiting_time: 1)
-    
-    expect(cb.state).to be :closed
+  context "method :POST" do
+    it "return the final state to :closed" do
+      cb = ::Cutter::CircuitBreaker.new(failure_threshold: 2, waiting_time: 1)
+      
+      expect(cb.current_state).to be :closed
 
-    4.times do |i|
-      begin
-        puts "==> Try to-#{i + 1}"
-        
-        response = cb.run do
-          HTTParty.post("http://localhost:4567/simulation_server_problems", 
-            body: { title: "Post #{i + 1}", content: "Content #{i + 1}" }.to_json, 
-            headers: { 'Content-Type' => 'application/json' },
-            timeout: 3
-          )
+      3.times do |i|
+        id = i + 1
+        begin
+          result = cb.perform(url: "https://dummyjson.com/products/add?delay=2000", http_method: :POST, headers: { 'Content-Type': 'application/json' }, body: { title: "Produk Dummy Title #{id}", description: "Produk Dummy Description #{id}", category: "dummy #{id}", price: rand(1.0..100.0).round(2) }, timeout: 3)
+          expect(result.code).to be(201)
+        rescue => e
+          puts "Request #{id} failed, with message #{e.message}"
         end
-        
-        puts "Response: '#{response}'"
-      rescue => e
-        puts "Error Response : #{e.message}"
 
-        sleep 2
+        sleep 1
       end
+
+      expect(cb.current_state).to be :closed
     end
 
-    expect(cb.state).to be :open
+    it "return the final state to :open" do
+      cb = ::Cutter::CircuitBreaker.new(failure_threshold: 2, waiting_time: 1)
+      
+      expect(cb.current_state).to be :closed
+
+      3.times do |i|
+        id = i + 1
+        begin
+          result = cb.perform(url: "https://dummyjson.com/products/add?delay=5000", http_method: :POST, headers: { 'Content-Type': 'application/json' }, body: { title: "Produk Dummy Title #{id}", description: "Produk Dummy Description #{id}", category: "dummy #{id}", price: rand(1.0..100.0).round(2) }, timeout: 3)
+          expect(result.code).to be(201)
+        rescue => e
+          puts "Request #{id} failed, with message #{e.message}"
+        end
+
+        sleep 1
+      end
+
+      expect(cb.current_state).to be :open
+    end
   end
 
-  it "return state changes to closed, after the state changes to open" do
-    cb = Cutter::CircuitBreaker.new(maximum_failure_limit: 3, waiting_time: 1)
-    
-    expect(cb.state).to be :closed
+  context "method :PUT" do
+    it "return the final state to :closed" do
+      cb = ::Cutter::CircuitBreaker.new(failure_threshold: 2, waiting_time: 1)
+      
+      expect(cb.current_state).to be :closed
 
-    5.times do |i|
-      begin
-        puts "==> Try to-#{i + 1}"
-        
-        if i == 4
-          # state changes to closed after waiting 1 second and successfully creating a post
-          response = cb.run do
-            HTTParty.post("http://localhost:4567/posts", 
-              body: { title: "Post #{i + 1}", content: "Content #{i + 1}" }.to_json, 
-              headers: { 'Content-Type' => 'application/json' },
-              timeout: 3
-            )
-          end
-        else
-          # state changes to open after 3x failure
-          response = cb.run do
-            HTTParty.post("http://localhost:4567/simulation_server_problems", 
-              body: { title: "Post #{i + 1}", content: "Content #{i + 1}" }.to_json, 
-              headers: { 'Content-Type' => 'application/json' },
-              timeout: 3
-            )
-          end
+      3.times do |i|
+        id = i + 1
+        begin
+          result = cb.perform(url: "https://dummyjson.com/products/#{id}?delay=2000", http_method: :PUT, headers: { 'Content-Type': 'application/json' }, body: { title: "Produk Dummy Title #{id} PUT", description: "Produk Dummy Description #{id} PUT", category: "dummy #{id} PUT", price: rand(1.0..100.0).round(2) }, timeout: 3)
+          expect(result.code).to be(200)
+        rescue => e
+          puts "Request #{id} failed, with message #{e.message}"
         end
-        
-        puts "Response: '#{response}'"
-      rescue => e
-        puts "Error Response : #{e.message}"
 
-        sleep 2
+        sleep 1
       end
+
+      expect(cb.current_state).to be :closed
     end
 
-    expect(cb.state).to be :closed
+    it "return the final state to :open" do
+      cb = ::Cutter::CircuitBreaker.new(failure_threshold: 2, waiting_time: 1)
+      
+      expect(cb.current_state).to be :closed
+
+      3.times do |i|
+        id = i + 1
+        begin
+          result = cb.perform(url: "https://dummyjson.com/products/#{id}?delay=5000", http_method: :PUT, headers: { 'Content-Type': 'application/json' }, body: { title: "Produk Dummy Title #{id} PUT", description: "Produk Dummy Description #{id} PUT", category: "dummy #{id} PUT", price: rand(1.0..100.0).round(2) }, timeout: 3)
+          expect(result.code).to be(200)
+        rescue => e
+          puts "Request #{id} failed, with message #{e.message}"
+        end
+
+        sleep 1
+      end
+
+      expect(cb.current_state).to be :open
+    end
+  end
+
+  context "method :PATCH" do
+    it "return the final state to :closed" do
+      cb = ::Cutter::CircuitBreaker.new(failure_threshold: 2, waiting_time: 1)
+      
+      expect(cb.current_state).to be :closed
+
+      3.times do |i|
+        id = i + 1
+        begin
+          result = cb.perform(url: "https://dummyjson.com/products/#{id}?delay=2000", http_method: :PATCH, headers: { 'Content-Type': 'application/json' }, body: { title: "Produk Dummy Title #{id} PATCH" }, timeout: 3)
+          expect(result.code).to be(200)
+        rescue => e
+          puts "Request #{id} failed, with message #{e.message}"
+        end
+
+        sleep 1
+      end
+
+      expect(cb.current_state).to be :closed
+    end
+
+    it "return the final state to :open" do
+      cb = ::Cutter::CircuitBreaker.new(failure_threshold: 2, waiting_time: 1)
+      
+      expect(cb.current_state).to be :closed
+
+      3.times do |i|
+        id = i + 1
+        begin
+          result = cb.perform(url: "https://dummyjson.com/products/#{id}?delay=5000", http_method: :PATCH, headers: { 'Content-Type': 'application/json' }, body: { title: "Produk Dummy Title #{id} PATCH" }, timeout: 3)
+          expect(result.code).to be(200)
+        rescue => e
+          puts "Request #{id} failed, with message #{e.message}"
+        end
+
+        sleep 1
+      end
+
+      expect(cb.current_state).to be :open
+    end
+  end
+
+  context "method :DELETE" do
+    it "return the final state to :closed" do
+      cb = ::Cutter::CircuitBreaker.new(failure_threshold: 2, waiting_time: 1)
+      
+      expect(cb.current_state).to be :closed
+
+      3.times do |i|
+        id = i + 1
+        begin
+          result = cb.perform(url: "https://dummyjson.com/products/#{id}?delay=2000", http_method: :DELETE, headers: { 'Content-Type': 'application/json' }, timeout: 3)
+          expect(result.code).to be(200)
+        rescue => e
+          puts "Request #{id} failed, with message #{e.message}"
+        end
+
+        sleep 1
+      end
+
+      expect(cb.current_state).to be :closed
+    end
+
+    it "return the final state to :open" do
+      cb = ::Cutter::CircuitBreaker.new(failure_threshold: 2, waiting_time: 1)
+      
+      expect(cb.current_state).to be :closed
+
+      3.times do |i|
+        id = i + 1
+        begin
+          result = cb.perform(url: "https://dummyjson.com/products/#{id}?delay=5000", http_method: :DELETE, headers: { 'Content-Type': 'application/json' }, timeout: 3)
+          expect(result.code).to be(200)
+        rescue => e
+          puts "Request #{id} failed, with message #{e.message}"
+        end
+
+        sleep 1
+      end
+
+      expect(cb.current_state).to be :open
+    end
+  end
+
+  it "return failed due to invalid url" do
+    cb = ::Cutter::CircuitBreaker.new(failure_threshold: 2, waiting_time: 1)
+    
+    expect { cb.perform(url: "123", http_method: :GET, headers: { 'Content-Type': 'application/json' }, timeout: 3) }.to raise_error(ArgumentError, 'Url 123 is not valid.')
+  end
+
+  it "return failed because http_method is invalid" do
+    cb = ::Cutter::CircuitBreaker.new(failure_threshold: 2, waiting_time: 1)
+    
+    expect { cb.perform(url: "https://dummyjson.com/products/1/?delay=2000", http_method: :ABC, headers: { 'Content-Type': 'application/json' }, timeout: 3) }.to raise_error(ArgumentError, 'Http method ABC is not recognized.')
+  end
+
+  it "return failed because http method :POST but body is invalid" do
+    cb = ::Cutter::CircuitBreaker.new(failure_threshold: 2, waiting_time: 1)
+    
+    expect { cb.perform(url: "https://dummyjson.com/products/add?delay=2000", http_method: :POST, headers: { 'Content-Type': 'application/json' }, timeout: 3) }.to raise_error(ArgumentError, "Key parameter with 'body' name is mandatory.")
   end
 end
