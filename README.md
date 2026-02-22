@@ -19,6 +19,7 @@ Minimum software version that must be installed on your device :
 
 Requires dependencies to the following gems :
 - httparty
+
 - logger
 
 ## Installation
