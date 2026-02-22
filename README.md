@@ -59,7 +59,7 @@ result.headers
 
 description of parameters:
 - failure_threshold : maximum allowable failure, for example : 3.
-- waiting_time : waiting time for state open to become state half open, for example : 5.
+- waiting_time : waiting time in seconds for state open to become state half open, for example : 5.
 - url : destination api url, for example : 'https://dummyjson.com/products/1'.
 - http_method : the type of http method used to call the target api, for example : :GET / :POST / :PUT / :PATCH / :DELETE.
 - headers : request headers, for example : { 'Content-Type': 'application/json' }.
