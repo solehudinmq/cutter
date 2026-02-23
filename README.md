@@ -47,14 +47,18 @@ require 'cutter'
 
 cb = ::Cutter::CircuitBreaker.new(failure_threshold: <your-failure-threshold>, waiting_time: <your-waiting-time>)
 
-result = cb.perform(url: <your-url>, http_method: <your-http-method>, headers: <your-request-headers>, body: <your-request-body>, timeout: <your-timeout-limit-calling-destination-api>)
+begin
+  result = cb.perform(url: <your-url>, http_method: <your-http-method>, headers: <your-request-headers>, body: <your-request-body>, timeout: <your-timeout-limit-calling-destination-api>)
 
-# how to call response code : 
-result.code
-# how to call response body :
-result.body
-# how to call response headers :
-result.headers
+  # how to call response code : 
+  result.code
+  # how to call response body :
+  result.body
+  # how to call response headers :
+  result.headers
+rescue => e
+  # catch error messages here
+end
 ```
 
 description of parameters:
